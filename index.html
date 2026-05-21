@@ -20,16 +20,17 @@
 
   <!-- Sidebar -->
   <aside class="sidebar" id="sidebar">
+    <a href="home.html" style="text-decoration:none">
     <div class="sidebar-logo">
       <div class="logo-icon">
         <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
-          <path d="M4 20 L10 12 L16 16 L22 6" stroke="#00d4ff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-          <circle cx="22" cy="6" r="2.5" fill="#00d4ff"/>
-          <path d="M2 24 H26" stroke="rgba(255,255,255,0.2)" stroke-width="1.5"/>
+          <path d="M4 20 L10 12 L16 16 L22 6" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+          <circle cx="22" cy="6" r="2.5" fill="#fff"/>
         </svg>
       </div>
       <span class="logo-text">GRAPHITE<span class="logo-accent">-X</span></span>
     </div>
+    </a>
 
     <div class="sidebar-search">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -92,12 +93,13 @@
     </nav>
 
     <div class="sidebar-footer">
-      <div class="sidebar-user">
-        <div class="user-avatar">V</div>
+      <div class="sidebar-user" style="cursor:pointer" onclick="window.location.href='home.html'" title="Back to home">
+        <div class="user-avatar" id="sidebarAvatar">V</div>
         <div class="user-info">
-          <span class="user-name">Vignesh</span>
-          <span class="user-role">Admin</span>
+          <span class="user-name" id="sidebarName">Admin</span>
+          <span class="user-role" id="sidebarRole">Administrator</span>
         </div>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.4)" stroke-width="2" style="margin-left:auto"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/></svg>
       </div>
     </div>
   </aside>
@@ -136,6 +138,27 @@
         <button class="btn-icon" title="Add panel" onclick="openAddPanel()">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
         </button>
+        <button class="btn-icon" title="Notifications" onclick="toggleAlertDrawer()" style="position:relative">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+          <span style="position:absolute;top:4px;right:4px;width:8px;height:8px;background:#ef4444;border-radius:50%;border:1.5px solid #fff"></span>
+        </button>
+        <div class="user-menu-wrap" style="position:relative">
+          <div class="user-avatar" id="topbarAvatar" onclick="toggleUserMenu()" style="cursor:pointer;width:32px;height:32px;font-size:13px">V</div>
+          <div id="userMenu" style="display:none;position:absolute;right:0;top:40px;width:200px;background:#fff;border:1px solid #e2e8f0;border-radius:12px;box-shadow:0 8px 24px rgba(37,99,235,0.12);z-index:200;padding:8px">
+            <div style="padding:10px 12px;border-bottom:1px solid #f1f5f9;margin-bottom:6px">
+              <div style="font-size:13px;font-weight:700" id="menuUserName">Admin</div>
+              <div style="font-size:11px;color:#94a3b8" id="menuUserEmail">admin@graphite-x.com</div>
+            </div>
+            <a href="home.html" style="display:flex;align-items:center;gap:8px;padding:8px 12px;font-size:13px;color:#475569;border-radius:7px;text-decoration:none" onmouseover="this.style.background='#f8faff'" onmouseout="this.style.background=''">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+              Home
+            </a>
+            <a href="#" onclick="handleSignOut()" style="display:flex;align-items:center;gap:8px;padding:8px 12px;font-size:13px;color:#ef4444;border-radius:7px;text-decoration:none" onmouseover="this.style.background='#fef2f2'" onmouseout="this.style.background=''">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+              Sign Out
+            </a>
+          </div>
+        </div>
         <button class="btn-primary" onclick="saveDashboard()">Save</button>
       </div>
     </header>

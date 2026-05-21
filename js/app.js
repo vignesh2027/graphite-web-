@@ -8,6 +8,33 @@
 /* ── Chart registry ──────────────────────────────────────── */
 const charts = {};
 
+/* ── Session / Auth ──────────────────────────────────────── */
+const getUser = () => {
+  try {
+    const raw = sessionStorage.getItem('gx_user');
+    return raw ? JSON.parse(raw) : { name: 'Admin', email: 'admin@graphite-x.com', role: 'Administrator' };
+  } catch { return { name: 'Admin', email: 'admin@graphite-x.com', role: 'Administrator' }; }
+};
+
+const initUserUI = () => {
+  const user = getUser();
+  const initial = (user.name || user.email || 'A')[0].toUpperCase();
+
+  const sidebar = document.getElementById('sidebarAvatar');
+  const sName   = document.getElementById('sidebarName');
+  const sRole   = document.getElementById('sidebarRole');
+  const topbar  = document.getElementById('topbarAvatar');
+  const mName   = document.getElementById('menuUserName');
+  const mEmail  = document.getElementById('menuUserEmail');
+
+  if (sidebar)  sidebar.textContent  = initial;
+  if (sName)    sName.textContent    = user.name || user.email.split('@')[0];
+  if (sRole)    sRole.textContent    = user.role || 'Administrator';
+  if (topbar)   topbar.textContent   = initial;
+  if (mName)    mName.textContent    = user.name || user.email.split('@')[0];
+  if (mEmail)   mEmail.textContent   = user.email || '';
+};
+
 /* ── Toast system ────────────────────────────────────────── */
 const toastContainer = (() => {
   const el = document.createElement('div');
@@ -22,7 +49,10 @@ const toast = (msg, type = 'info', duration = 3000) => {
   const icons = { success: '✓', error: '✕', info: 'ℹ' };
   t.innerHTML = `<span style="font-weight:700;font-size:15px">${icons[type] || icons.info}</span> ${msg}`;
   toastContainer.appendChild(t);
-  setTimeout(() => { t.style.opacity = '0'; t.style.transform = 'translateX(20px)'; t.style.transition = '0.3s'; setTimeout(() => t.remove(), 300); }, duration);
+  setTimeout(() => {
+    t.style.opacity = '0'; t.style.transform = 'translateX(20px)'; t.style.transition = '0.3s';
+    setTimeout(() => t.remove(), 300);
+  }, duration);
 };
 
 /* ── Format helpers ──────────────────────────────────────── */
@@ -34,6 +64,7 @@ const fmtLabel = () => {
 
 /* ── Init ────────────────────────────────────────────────── */
 document.addEventListener('DOMContentLoaded', () => {
+  initUserUI();
   MetricsEngine.init();
   initSparklines();
   initMainChart();
@@ -45,7 +76,20 @@ document.addEventListener('DOMContentLoaded', () => {
   initHostTable();
   startLiveUpdates();
   renderAlertList();
+  initClock();
 });
+
+/* ── Live clock ──────────────────────────────────────────── */
+function initClock() {
+  const clockEl = document.getElementById('liveClock');
+  if (!clockEl) return;
+  const update = () => {
+    const d = new Date();
+    clockEl.textContent = d.toLocaleTimeString();
+  };
+  update();
+  setInterval(update, 1000);
+}
 
 /* ── Sparklines ──────────────────────────────────────────── */
 function initSparklines() {
@@ -64,21 +108,22 @@ function initMainChart() {
     { label: 'Mem GB',   series: MetricsEngine.getSeries('memory', 60),  color: 'purple', fill: false },
     { label: 'Net MB/s', series: MetricsEngine.getSeries('netIn', 60),   color: 'green',  fill: false },
   ]);
+  buildLegend('mainLegend', [
+    { label: 'CPU',     color: GXCharts.COLORS.blue || '#2563eb' },
+    { label: 'Memory',  color: GXCharts.COLORS.purple },
+    { label: 'Network', color: GXCharts.COLORS.green },
+  ]);
+}
 
-  const legend = document.getElementById('mainLegend');
-  if (legend) {
-    const items = [
-      { label: 'CPU', color: GXCharts.COLORS.cyan },
-      { label: 'Memory', color: GXCharts.COLORS.purple },
-      { label: 'Network', color: GXCharts.COLORS.green },
-    ];
-    legend.innerHTML = items.map(it =>
-      `<div class="legend-item">
-        <span class="legend-dot" style="background:${it.color}"></span>
-        ${it.label}
-      </div>`
-    ).join('');
-  }
+function buildLegend(id, items) {
+  const legend = document.getElementById(id);
+  if (!legend) return;
+  legend.innerHTML = items.map(it =>
+    `<div class="legend-item">
+      <span class="legend-dot" style="background:${it.color}"></span>
+      ${it.label}
+    </div>`
+  ).join('');
 }
 
 /* ── Request rate bar chart ──────────────────────────────── */
@@ -89,8 +134,9 @@ function initRequestChart() {
 /* ── Disk doughnut gauge ─────────────────────────────────── */
 function initDiskGauge() {
   const val = MetricsEngine.getValue('disk');
-  charts.disk = GXCharts.doughnut('chartDisk', val, 100, GXCharts.COLORS.cyan);
-  document.getElementById('diskPct').textContent = `${Math.round(val)}%`;
+  charts.disk = GXCharts.doughnut('chartDisk', val, 100, GXCharts.COLORS.blue || '#2563eb');
+  const el = document.getElementById('diskPct');
+  if (el) el.textContent = `${Math.round(val)}%`;
 }
 
 /* ── Error rate ──────────────────────────────────────────── */
@@ -114,9 +160,7 @@ function initNetChart() {
 }
 
 /* ── Host table ──────────────────────────────────────────── */
-function initHostTable() {
-  renderHostTable();
-}
+function initHostTable() { renderHostTable(); }
 
 function renderHostTable() {
   const body = document.getElementById('hostTableBody');
@@ -131,7 +175,7 @@ function renderHostTable() {
           <div class="host-bar-bg">
             <div class="host-bar-fill" style="width:${h.cpu}%;background:${cpuColor}"></div>
           </div>
-          <span style="font-size:11px;min-width:34px;text-align:right;font-variant-numeric:tabular-nums">${fmt(h.cpu)}%</span>
+          <span style="font-size:11px;min-width:36px;text-align:right;font-variant-numeric:tabular-nums">${fmt(h.cpu)}%</span>
         </div>
       </td>
       <td style="font-size:11px;font-variant-numeric:tabular-nums">${fmt(h.mem)}%</td>
@@ -150,8 +194,11 @@ function renderAlertList() {
     return `<div class="alert-item ${a.severity}">
       <div class="alert-item-title">${a.title}</div>
       <div class="alert-item-meta">${a.desc}</div>
-      <div class="alert-item-meta" style="margin-top:4px;font-family:var(--font-mono);color:var(--accent-cyan)">${a.metric}</div>
-      <div class="alert-item-meta" style="margin-top:6px">${mins}m ago</div>
+      <div class="alert-item-meta" style="margin-top:4px;font-family:var(--font-mono);color:var(--accent-primary);font-size:10px">${a.metric}</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-top:8px">
+        <div class="alert-item-meta">${mins}m ago</div>
+        <button onclick="silenceFromDrawer(${a.id})" style="font-size:10px;font-weight:600;padding:2px 8px;border:1px solid #e2e8f0;border-radius:6px;background:#fff;cursor:pointer;color:#475569">Silence</button>
+      </div>
     </div>`;
   }).join('');
 }
@@ -166,54 +213,27 @@ function startLiveUpdates() {
     const label = fmtLabel();
     _tickCount++;
 
-    /* stat card values */
     setStatVal('cpuVal', vals.cpu, '%');
     setStatVal('memVal', vals.memory, 'GB');
     setStatVal('reqVal', vals.requests, 'K/s');
     setStatVal('latVal', Math.round(vals.latency), 'ms');
     setStatVal('errVal', vals.errors, '%');
 
-    /* sparklines */
-    const cpuS = MetricsEngine.getSeries('cpu', 30);
-    const memS = MetricsEngine.getSeries('memory', 30);
-    const reqS = MetricsEngine.getSeries('requests', 30);
-    const latS = MetricsEngine.getSeries('latency', 30);
-    const errS = MetricsEngine.getSeries('errors', 30);
+    updateSparkline(charts.sparkCpu, MetricsEngine.getSeries('cpu', 30));
+    updateSparkline(charts.sparkMem, MetricsEngine.getSeries('memory', 30));
+    updateSparkline(charts.sparkReq, MetricsEngine.getSeries('requests', 30));
+    updateSparkline(charts.sparkLat, MetricsEngine.getSeries('latency', 30));
+    updateSparkline(charts.sparkErr, MetricsEngine.getSeries('errors', 30));
 
-    updateSparkline(charts.sparkCpu, cpuS);
-    updateSparkline(charts.sparkMem, memS);
-    updateSparkline(charts.sparkReq, reqS);
-    updateSparkline(charts.sparkLat, latS);
-    updateSparkline(charts.sparkErr, errS);
-
-    /* main chart — slide window */
-    GXCharts.appendMulti(charts.main,
-      [vals.cpu, vals.memory, vals.netIn], label);
-
-    /* request bar */
+    GXCharts.appendMulti(charts.main, [vals.cpu, vals.memory, vals.netIn], label);
     GXCharts.appendPoint(charts.req, 'requests', vals.requests, label);
-
-    /* error chart */
     GXCharts.appendPoint(charts.err, 'errors', vals.errors, label);
-
-    /* net chart */
     GXCharts.appendMulti(charts.net, [vals.netIn, vals.netOut], label);
 
-    /* disk gauge (slower) */
-    if (_tickCount % 5 === 0) {
-      const diskVal = MetricsEngine.getValue('disk');
-      updateDiskGauge(diskVal);
-    }
-
-    /* host table (medium) */
-    if (_tickCount % 3 === 0) {
-      renderHostTable();
-    }
-
-    /* random anomaly toast */
-    if (_tickCount % 45 === 0) {
-      const v = MetricsEngine.getValue('cpu');
-      if (v > 88) toast(`CPU spike detected: ${fmt(v)}%`, 'error');
+    if (_tickCount % 5 === 0) updateDiskGauge(MetricsEngine.getValue('disk'));
+    if (_tickCount % 3 === 0) renderHostTable();
+    if (_tickCount % 45 === 0 && MetricsEngine.getValue('cpu') > 88) {
+      toast(`CPU spike: ${fmt(MetricsEngine.getValue('cpu'))}%`, 'error');
     }
   }, 2000);
 }
@@ -234,7 +254,7 @@ function updateSparkline(chart, series) {
 function updateDiskGauge(val) {
   if (!charts.disk) return;
   const pct = val / 100;
-  const color = pct > 0.85 ? GXCharts.COLORS.red : pct > 0.70 ? GXCharts.COLORS.amber : GXCharts.COLORS.cyan;
+  const color = pct > 0.85 ? GXCharts.COLORS.red : pct > 0.70 ? GXCharts.COLORS.amber : (GXCharts.COLORS.blue || '#2563eb');
   charts.disk.data.datasets[0].data = [pct, 1 - pct];
   charts.disk.data.datasets[0].backgroundColor[0] = color;
   charts.disk.update('none');
@@ -248,66 +268,122 @@ function toggleSidebar() {
   document.body.classList.toggle('sidebar-collapsed');
   setTimeout(() => {
     Object.values(charts).forEach(c => { if (c && c.resize) c.resize(); });
+    if (charts.heat) charts.heat.redraw?.();
   }, 350);
 }
 
 function setRange(r) {
   document.querySelectorAll('.time-btn').forEach(b => b.classList.remove('active'));
-  event.target.classList.add('active');
-  toast(`Time range set to ${r}`, 'info', 1500);
+  if (event && event.target) event.target.classList.add('active');
+  toast(`Time range: ${r}`, 'info', 1500);
 }
 
 function refreshAll() {
   MetricsEngine.init();
+  if (charts.main) { charts.main.destroy(); charts.main = null; }
+  if (charts.req)  { charts.req.destroy();  charts.req  = null; }
+  if (charts.err)  { charts.err.destroy();  charts.err  = null; }
+  if (charts.net)  { charts.net.destroy();  charts.net  = null; }
   initMainChart();
   initRequestChart();
   initErrorChart();
   initNetChart();
   initHeatmap();
   renderHostTable();
-  toast('Dashboard refreshed', 'success', 1500);
+  toast('Dashboard refreshed', 'success', 1800);
 }
 
 function saveDashboard() {
-  toast('Dashboard saved', 'success', 2000);
+  const layout = { panels: ['main','req','disk','err','heat','net','top'], savedAt: new Date().toISOString() };
+  localStorage.setItem('gx_dashboard', JSON.stringify(layout));
+  toast('Dashboard saved ✓', 'success', 2000);
 }
 
 function togglePanel(id) {
   const panel = document.getElementById(id);
   if (!panel) return;
-  panel.classList.toggle('span-3');
-  panel.classList.toggle('span-2');
-  setTimeout(() => {
-    Object.values(charts).forEach(c => { if (c && c.resize) c.resize(); });
-  }, 100);
+  const isExpanded = panel.classList.contains('span-3');
+  document.querySelectorAll('.chart-card').forEach(c => {
+    c.classList.remove('span-3');
+    c.style.display = '';
+  });
+  if (!isExpanded) {
+    panel.classList.add('span-3');
+    document.querySelectorAll('.chart-card').forEach(c => {
+      if (c.id !== id) c.style.display = 'none';
+    });
+  }
+  setTimeout(() => Object.values(charts).forEach(c => { if (c && c.resize) c.resize(); }), 100);
 }
 
 function openAddPanel() {
   document.getElementById('addPanelModal').classList.add('open');
 }
-
 function closeAddPanel() {
   document.getElementById('addPanelModal').classList.remove('open');
 }
 
+let selectedPanelType = 'line';
 function addPanel(type) {
-  document.querySelectorAll('.panel-type').forEach(p => p.classList.remove('selected'));
-  event.currentTarget.classList.add('selected');
-  event.currentTarget.style.borderColor = 'var(--accent-cyan)';
+  selectedPanelType = type;
+  document.querySelectorAll('.panel-type').forEach(p => {
+    p.style.borderColor = '';
+    p.style.color = '';
+    p.style.background = '';
+  });
+  if (event && event.currentTarget) {
+    event.currentTarget.style.borderColor = '#2563eb';
+    event.currentTarget.style.color = '#2563eb';
+    event.currentTarget.style.background = 'rgba(37,99,235,0.06)';
+  }
 }
 
 function confirmAddPanel() {
   const title = document.getElementById('panelTitle').value || 'New Panel';
   closeAddPanel();
   toast(`Panel "${title}" added`, 'success');
+  document.getElementById('panelQuery').value = '';
+  document.getElementById('panelTitle').value = '';
+}
+
+/* ── Alert drawer ────────────────────────────────────────── */
+let alertDrawerOpen = false;
+
+function toggleAlertDrawer() {
+  alertDrawerOpen = !alertDrawerOpen;
+  const drawer = document.getElementById('alertDrawer');
+  if (drawer) drawer.classList.toggle('open', alertDrawerOpen);
 }
 
 function closeAlertDrawer() {
-  document.getElementById('alertDrawer').classList.remove('open');
+  alertDrawerOpen = false;
+  const drawer = document.getElementById('alertDrawer');
+  if (drawer) drawer.classList.remove('open');
 }
 
+function silenceFromDrawer(id) {
+  toast('Alert silenced for 1 hour', 'info');
+}
+
+/* ── User menu ───────────────────────────────────────────── */
+let userMenuOpen = false;
+
+function toggleUserMenu() {
+  userMenuOpen = !userMenuOpen;
+  const menu = document.getElementById('userMenu');
+  if (menu) menu.style.display = userMenuOpen ? 'block' : 'none';
+}
+
+function handleSignOut() {
+  sessionStorage.removeItem('gx_user');
+  toast('Signed out successfully', 'success', 1500);
+  setTimeout(() => { window.location.href = 'login.html'; }, 1600);
+}
+
+/* ── Load dashboard preset ───────────────────────────────── */
 function loadDashboard(name) {
-  toast(`Loading ${name} dashboard…`, 'info', 1500);
+  toast(`Loading "${name}" dashboard…`, 'info', 2000);
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
 }
 
 /* ── Keyboard shortcuts ──────────────────────────────────── */
@@ -315,12 +391,23 @@ document.addEventListener('keydown', e => {
   if (e.key === 'Escape') {
     closeAddPanel();
     closeAlertDrawer();
+    userMenuOpen = false;
+    const menu = document.getElementById('userMenu');
+    if (menu) menu.style.display = 'none';
   }
-  if (e.key === 'r' && !e.ctrlKey && !e.metaKey && document.activeElement.tagName !== 'INPUT') {
-    refreshAll();
-  }
-  if (e.key === 'a' && !e.ctrlKey && !e.metaKey && document.activeElement.tagName !== 'INPUT') {
-    document.getElementById('alertDrawer').classList.toggle('open');
+  if (['INPUT','TEXTAREA'].includes(document.activeElement.tagName)) return;
+  if (e.key === 'r' && !e.ctrlKey && !e.metaKey) refreshAll();
+  if (e.key === 'a' && !e.ctrlKey && !e.metaKey) toggleAlertDrawer();
+  if (e.key === 's' && !e.ctrlKey && !e.metaKey) saveDashboard();
+});
+
+/* Close menus on outside click */
+document.addEventListener('click', e => {
+  const wrap = e.target.closest('.user-menu-wrap');
+  if (!wrap && userMenuOpen) {
+    userMenuOpen = false;
+    const menu = document.getElementById('userMenu');
+    if (menu) menu.style.display = 'none';
   }
 });
 
@@ -330,7 +417,7 @@ if (sidebarSearch) {
   sidebarSearch.addEventListener('input', e => {
     const q = e.target.value.toLowerCase();
     document.querySelectorAll('.nav-item').forEach(item => {
-      item.style.display = item.textContent.toLowerCase().includes(q) ? '' : 'none';
+      item.style.display = !q || item.textContent.toLowerCase().includes(q) ? '' : 'none';
     });
   });
 }
