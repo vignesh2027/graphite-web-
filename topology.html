@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Topology — GRAPHITE-X</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📊</text></svg>" />
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
+</head>
+<body style="overflow:hidden">
+  <div class="bg-grid" style="opacity:0.4"></div>
+
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-icon">
+        <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+          <path d="M4 20 L10 12 L16 16 L22 6" stroke="#00d4ff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+          <circle cx="22" cy="6" r="2.5" fill="#00d4ff"/>
+        </svg>
+      </div>
+      <span class="logo-text">GRAPHITE<span class="logo-accent">-X</span></span>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">OVERVIEW</div>
+      <a href="index.html" class="nav-item"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>Dashboard</a>
+      <a href="explore.html" class="nav-item"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>Explore</a>
+      <a href="topology.html" class="nav-item active"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="5" r="2"/><circle cx="5" cy="19" r="2"/><circle cx="19" cy="19" r="2"/><path d="M12 7v4M8.5 17.5 12 11M15.5 17.5 12 11"/></svg>Topology</a>
+      <a href="alerts.html" class="nav-item"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>Alerts<span class="badge-alert">3</span></a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <div class="user-avatar">V</div>
+        <div class="user-info"><span class="user-name">Vignesh</span><span class="user-role">Admin</span></div>
+      </div>
+    </div>
+  </aside>
+
+  <main class="main" style="position:relative;overflow:hidden">
+    <header class="topbar">
+      <div class="topbar-left">
+        <h1 class="page-title">Topology</h1>
+        <div class="breadcrumb">
+          <span>Home</span>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+          <span class="active">3D Network Topology</span>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <div class="live-indicator"><span class="live-dot"></span>LIVE</div>
+        <select class="gx-select" id="layoutSelect" onchange="setLayout(this.value)">
+          <option value="sphere">Sphere</option>
+          <option value="grid">Grid</option>
+          <option value="force">Force</option>
+        </select>
+        <button class="btn-outline" onclick="resetCamera()">Reset View</button>
+      </div>
+    </header>
+
+    <!-- Three.js canvas fills the rest -->
+    <div id="topoContainer" style="flex:1;position:relative"></div>
+
+    <!-- Legend -->
+    <div class="topology-legend">
+      <h4>Node Types</h4>
+      <div class="legend-row"><div class="legend-node" style="background:#00d4ff;box-shadow:0 0 8px #00d4ff"></div>Web Server</div>
+      <div class="legend-row"><div class="legend-node" style="background:#7c3aed;box-shadow:0 0 8px #7c3aed"></div>API Server</div>
+      <div class="legend-row"><div class="legend-node" style="background:#10b981;box-shadow:0 0 8px #10b981"></div>Database</div>
+      <div class="legend-row"><div class="legend-node" style="background:#f59e0b;box-shadow:0 0 8px #f59e0b"></div>Cache</div>
+      <div class="legend-row"><div class="legend-node" style="background:#ec4899;box-shadow:0 0 8px #ec4899"></div>Queue</div>
+      <div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border)">
+        <div class="legend-row" style="margin-bottom:4px"><div style="width:20px;height:2px;background:rgba(255,255,255,0.3);border-radius:1px"></div>Connection</div>
+        <div class="legend-row"><div style="width:20px;height:2px;background:var(--accent-red);border-radius:1px"></div>Alert Link</div>
+      </div>
+    </div>
+
+    <!-- Controls -->
+    <div class="topology-controls">
+      <button class="btn-icon" onclick="zoomIn()" title="Zoom in">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
+      </button>
+      <button class="btn-icon" onclick="zoomOut()" title="Zoom out">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
+      </button>
+      <button class="btn-icon" onclick="toggleRotate()" title="Auto-rotate" id="rotateBtn">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+      </button>
+    </div>
+
+    <!-- Node tooltip -->
+    <div class="node-tooltip" id="nodeTooltip"></div>
+  </main>
+
+  <script src="js/metrics.js"></script>
+  <script>
+  (() => {
+    MetricsEngine.init();
+
+    const container = document.getElementById('topoContainer');
+    const W = () => container.clientWidth;
+    const H = () => container.clientHeight;
+
+    /* ── Scene ─────────────────────────────────────────────── */
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(60, W() / H(), 0.1, 2000);
+    camera.position.set(0, 0, 280);
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    renderer.setPixelRatio(window.devicePixelRatio);
+    renderer.setSize(W(), H());
+    renderer.setClearColor(0x000000, 0);
+    container.appendChild(renderer.domElement);
+
+    /* ── Lights ────────────────────────────────────────────── */
+    scene.add(new THREE.AmbientLight(0xffffff, 0.3));
+    const pt = new THREE.PointLight(0x00d4ff, 2, 600);
+    pt.position.set(0, 100, 100);
+    scene.add(pt);
+
+    /* ── Nodes definition ──────────────────────────────────── */
+    const NODES = [
+      { id:'lb',       label:'Load Balancer',  type:'web',    cpu:45, mem:38, status:'ok' },
+      { id:'web-01',   label:'web-01.prod',    type:'web',    cpu:82, mem:78, status:'warn' },
+      { id:'web-02',   label:'web-02.prod',    type:'web',    cpu:64, mem:55, status:'ok' },
+      { id:'api-01',   label:'api-01.prod',    type:'api',    cpu:91, mem:84, status:'crit' },
+      { id:'api-02',   label:'api-02.prod',    type:'api',    cpu:45, mem:62, status:'ok' },
+      { id:'db-01',    label:'db-01.prod',     type:'db',     cpu:38, mem:92, status:'warn' },
+      { id:'db-02',    label:'db-02.prod',     type:'db',     cpu:22, mem:88, status:'ok' },
+      { id:'cache-01', label:'cache-01',       type:'cache',  cpu:18, mem:43, status:'ok' },
+      { id:'queue-01', label:'queue-01',       type:'queue',  cpu:56, mem:71, status:'ok' },
+    ];
+
+    const EDGES = [
+      ['lb','web-01'], ['lb','web-02'],
+      ['web-01','api-01'], ['web-01','api-02'],
+      ['web-02','api-01'], ['web-02','api-02'],
+      ['api-01','db-01'], ['api-01','db-02'],
+      ['api-02','db-01'], ['api-02','cache-01'],
+      ['api-01','queue-01'], ['api-02','queue-01'],
+    ];
+
+    const TYPE_COLORS = {
+      web:   0x00d4ff,
+      api:   0x7c3aed,
+      db:    0x10b981,
+      cache: 0xf59e0b,
+      queue: 0xec4899,
+    };
+
+    const STATUS_EMISSIVE = {
+      ok:   0x001122,
+      warn: 0x221100,
+      crit: 0x220000,
+    };
+
+    /* ── Sphere layout ─────────────────────────────────────── */
+    const spherePositions = () => {
+      const n = NODES.length;
+      return NODES.map((_, i) => {
+        const phi = Math.acos(-1 + (2 * i) / n);
+        const theta = Math.sqrt(n * Math.PI) * phi;
+        return new THREE.Vector3(
+          110 * Math.cos(theta) * Math.sin(phi),
+          110 * Math.sin(theta) * Math.sin(phi),
+          110 * Math.cos(phi)
+        );
+      });
+    };
+
+    /* ── Build scene objects ───────────────────────────────── */
+    const meshes = [];
+    const positions = spherePositions();
+
+    NODES.forEach((node, i) => {
+      const size = node.type === 'lb' ? 9 : node.type === 'db' ? 8 : 7;
+      const geo = new THREE.SphereGeometry(size, 24, 24);
+      const mat = new THREE.MeshPhongMaterial({
+        color: TYPE_COLORS[node.type],
+        emissive: STATUS_EMISSIVE[node.status],
+        shininess: 120,
+        transparent: true,
+        opacity: 0.92,
+      });
+      const mesh = new THREE.Mesh(geo, mat);
+      mesh.position.copy(positions[i]);
+      mesh.userData = { node, index: i };
+      scene.add(mesh);
+      meshes.push(mesh);
+
+      /* Glow ring */
+      const ringGeo = new THREE.RingGeometry(size + 1.5, size + 3, 32);
+      const ringMat = new THREE.MeshBasicMaterial({
+        color: node.status === 'crit' ? 0xef4444 : node.status === 'warn' ? 0xf59e0b : TYPE_COLORS[node.type],
+        transparent: true, opacity: 0.35, side: THREE.DoubleSide,
+      });
+      const ring = new THREE.Mesh(ringGeo, ringMat);
+      ring.position.copy(positions[i]);
+      ring.lookAt(camera.position);
+      scene.add(ring);
+    });
+
+    /* ── Edges ─────────────────────────────────────────────── */
+    EDGES.forEach(([a, b]) => {
+      const ia = NODES.findIndex(n => n.id === a);
+      const ib = NODES.findIndex(n => n.id === b);
+      if (ia < 0 || ib < 0) return;
+      const pA = positions[ia], pB = positions[ib];
+      const nodeA = NODES[ia], nodeB = NODES[ib];
+      const isCrit = nodeA.status === 'crit' || nodeB.status === 'crit';
+
+      const points = [];
+      const mid = pA.clone().add(pB).multiplyScalar(0.5);
+      mid.multiplyScalar(1.15);
+      for (let t = 0; t <= 1; t += 0.05) {
+        const p = new THREE.Vector3();
+        p.lerpVectors(pA, pB, t);
+        points.push(p);
+      }
+      const curve = new THREE.CatmullRomCurve3(points);
+      const geo = new THREE.TubeGeometry(curve, 20, 0.5, 6, false);
+      const mat = new THREE.MeshBasicMaterial({
+        color: isCrit ? 0xef4444 : 0x334455,
+        transparent: true,
+        opacity: isCrit ? 0.7 : 0.25,
+      });
+      scene.add(new THREE.Mesh(geo, mat));
+    });
+
+    /* ── Particles background ──────────────────────────────── */
+    const partGeo = new THREE.BufferGeometry();
+    const partCount = 300;
+    const partPos = new Float32Array(partCount * 3);
+    for (let i = 0; i < partCount * 3; i++) partPos[i] = (Math.random() - 0.5) * 700;
+    partGeo.setAttribute('position', new THREE.BufferAttribute(partPos, 3));
+    const partMat = new THREE.PointsMaterial({ color: 0x00d4ff, size: 0.8, transparent: true, opacity: 0.3 });
+    scene.add(new THREE.Points(partGeo, partMat));
+
+    /* ── Mouse orbit ───────────────────────────────────────── */
+    let isDragging = false, prevMouse = { x: 0, y: 0 };
+    let spherical = { theta: 0, phi: Math.PI / 2, r: 280 };
+    let autoRotate = true;
+
+    renderer.domElement.addEventListener('mousedown', e => { isDragging = true; prevMouse = { x: e.clientX, y: e.clientY }; });
+    window.addEventListener('mouseup', () => { isDragging = false; });
+    window.addEventListener('mousemove', e => {
+      if (!isDragging) return;
+      const dx = (e.clientX - prevMouse.x) * 0.008;
+      const dy = (e.clientY - prevMouse.y) * 0.008;
+      spherical.theta -= dx;
+      spherical.phi = Math.max(0.2, Math.min(Math.PI - 0.2, spherical.phi - dy));
+      prevMouse = { x: e.clientX, y: e.clientY };
+    });
+    renderer.domElement.addEventListener('wheel', e => {
+      spherical.r = Math.max(120, Math.min(600, spherical.r + e.deltaY * 0.3));
+    });
+
+    /* ── Raycasting for hover ──────────────────────────────── */
+    const raycaster = new THREE.Raycaster();
+    const mouse = new THREE.Vector2();
+    const tooltip = document.getElementById('nodeTooltip');
+
+    renderer.domElement.addEventListener('mousemove', e => {
+      if (isDragging) return;
+      const rect = renderer.domElement.getBoundingClientRect();
+      mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+      mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+      raycaster.setFromCamera(mouse, camera);
+      const hits = raycaster.intersectObjects(meshes);
+      if (hits.length) {
+        const { node } = hits[0].object.userData;
+        tooltip.style.display = 'block';
+        tooltip.style.left = (e.clientX - rect.left + 16) + 'px';
+        tooltip.style.top  = (e.clientY - rect.top  - 10) + 'px';
+        const statusColor = { ok:'#10b981', warn:'#f59e0b', crit:'#ef4444' }[node.status];
+        tooltip.innerHTML = `
+          <div style="font-weight:700;font-size:13px;margin-bottom:6px">${node.label}</div>
+          <div style="font-size:11px;color:rgba(255,255,255,0.5);margin-bottom:8px;text-transform:uppercase;letter-spacing:.06em">${node.type}</div>
+          <div style="font-size:12px;margin-bottom:3px">CPU: <strong>${node.cpu.toFixed(1)}%</strong></div>
+          <div style="font-size:12px;margin-bottom:6px">MEM: <strong>${node.mem.toFixed(1)}%</strong></div>
+          <div style="font-size:11px;color:${statusColor};font-weight:700;text-transform:uppercase">${node.status}</div>
+        `;
+        hits[0].object.material.emissiveIntensity = 0.4;
+      } else {
+        tooltip.style.display = 'none';
+        meshes.forEach(m => { m.material.emissiveIntensity = 0; });
+      }
+    });
+
+    /* ── Animate ───────────────────────────────────────────── */
+    let t = 0;
+    const animate = () => {
+      requestAnimationFrame(animate);
+      t += 0.008;
+      if (autoRotate && !isDragging) spherical.theta += 0.003;
+      camera.position.x = spherical.r * Math.sin(spherical.phi) * Math.cos(spherical.theta);
+      camera.position.y = spherical.r * Math.cos(spherical.phi);
+      camera.position.z = spherical.r * Math.sin(spherical.phi) * Math.sin(spherical.theta);
+      camera.lookAt(0, 0, 0);
+
+      /* pulsing rings */
+      meshes.forEach((m, i) => {
+        m.scale.setScalar(1 + 0.02 * Math.sin(t * 1.5 + i));
+      });
+
+      renderer.render(scene, camera);
+    };
+    animate();
+
+    /* ── Live node update ──────────────────────────────────── */
+    setInterval(() => {
+      MetricsEngine.tickAll();
+      const hosts = MetricsEngine.getHosts();
+      NODES.forEach((node, i) => {
+        const h = hosts.find(h => h.name.includes(node.id.replace('-','.')));
+        if (h) {
+          node.cpu = h.cpu; node.mem = h.mem; node.status = h.status;
+          const color = node.status === 'crit' ? 0xef4444 : node.status === 'warn' ? 0xf59e0b : TYPE_COLORS[node.type];
+          meshes[i].material.emissive.setHex(STATUS_EMISSIVE[node.status]);
+        }
+      });
+    }, 3000);
+
+    /* ── Controls ──────────────────────────────────────────── */
+    window.zoomIn     = () => { spherical.r = Math.max(120, spherical.r - 30); };
+    window.zoomOut    = () => { spherical.r = Math.min(600, spherical.r + 30); };
+    window.resetCamera= () => { spherical = { theta:0, phi: Math.PI/2, r:280 }; };
+    window.toggleRotate= () => {
+      autoRotate = !autoRotate;
+      document.getElementById('rotateBtn').style.color = autoRotate ? 'var(--accent-cyan)' : '';
+    };
+    window.setLayout = (l) => { /* future: rearrange positions */ };
+
+    /* ── Resize ────────────────────────────────────────────── */
+    window.addEventListener('resize', () => {
+      camera.aspect = W() / H();
+      camera.updateProjectionMatrix();
+      renderer.setSize(W(), H());
+    });
+  })();
+  </script>
+</body>
+</html>

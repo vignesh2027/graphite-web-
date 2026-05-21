@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Explore — GRAPHITE-X</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📊</text></svg>" />
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+  <div class="bg-grid"></div>
+  <div class="bg-orbs">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-icon">
+        <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+          <path d="M4 20 L10 12 L16 16 L22 6" stroke="#00d4ff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+          <circle cx="22" cy="6" r="2.5" fill="#00d4ff"/>
+          <path d="M2 24 H26" stroke="rgba(255,255,255,0.2)" stroke-width="1.5"/>
+        </svg>
+      </div>
+      <span class="logo-text">GRAPHITE<span class="logo-accent">-X</span></span>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">OVERVIEW</div>
+      <a href="index.html" class="nav-item">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+        Dashboard
+      </a>
+      <a href="explore.html" class="nav-item active">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        Explore
+      </a>
+      <a href="topology.html" class="nav-item">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="5" r="2"/><circle cx="5" cy="19" r="2"/><circle cx="19" cy="19" r="2"/><path d="M12 7v4M8.5 17.5 12 11M15.5 17.5 12 11"/></svg>
+        Topology
+      </a>
+      <a href="alerts.html" class="nav-item">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        Alerts
+        <span class="badge-alert">3</span>
+      </a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <div class="user-avatar">V</div>
+        <div class="user-info">
+          <span class="user-name">Vignesh</span>
+          <span class="user-role">Admin</span>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <main class="main">
+    <header class="topbar">
+      <div class="topbar-left">
+        <h1 class="page-title">Explore</h1>
+        <div class="breadcrumb">
+          <span>Home</span>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+          <span class="active">Metrics Explorer</span>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <div class="time-range-picker">
+          <button class="time-btn" onclick="setRange(this,'15m')">15m</button>
+          <button class="time-btn" onclick="setRange(this,'1h')">1h</button>
+          <button class="time-btn active" onclick="setRange(this,'6h')">6h</button>
+          <button class="time-btn" onclick="setRange(this,'24h')">24h</button>
+          <button class="time-btn" onclick="setRange(this,'7d')">7d</button>
+        </div>
+        <div class="live-indicator"><span class="live-dot"></span>LIVE</div>
+      </div>
+    </header>
+
+    <div class="explore-layout">
+      <!-- Left: metric tree -->
+      <div class="metric-tree">
+        <div class="metric-tree-search">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          <input type="text" placeholder="Filter metrics…" id="treeSearch" />
+        </div>
+        <div id="treeRoot"></div>
+      </div>
+
+      <!-- Right: query + result -->
+      <div class="explore-main">
+        <!-- Query builder -->
+        <div class="query-builder">
+          <div style="font-size:11px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px">Query Builder</div>
+          <div class="qb-row">
+            <input type="text" class="qb-input" id="queryInput" placeholder="servers.*.cpu.usage" value="servers.*.cpu.usage" />
+            <select class="gx-select" id="funcSelect">
+              <option value="">Function…</option>
+              <option value="avg">averageSeries()</option>
+              <option value="sum">sumSeries()</option>
+              <option value="max">maxSeries()</option>
+              <option value="min">minSeries()</option>
+              <option value="derivative">derivative()</option>
+              <option value="perSecond">perSecond()</option>
+              <option value="movingAverage">movingAverage(10)</option>
+              <option value="scale">scale(100)</option>
+            </select>
+            <button class="btn-primary" onclick="runQuery()">Run</button>
+          </div>
+          <div style="font-size:11px;color:var(--text-muted);margin-bottom:8px">Quick functions:</div>
+          <div class="qb-func-pills">
+            <span class="func-pill" onclick="applyFunc('summarize')">summarize()</span>
+            <span class="func-pill" onclick="applyFunc('highestCurrent')">highestCurrent()</span>
+            <span class="func-pill" onclick="applyFunc('movingAverage')">movingAverage()</span>
+            <span class="func-pill" onclick="applyFunc('derivative')">derivative()</span>
+            <span class="func-pill" onclick="applyFunc('scale')">scale()</span>
+            <span class="func-pill" onclick="applyFunc('alias')">alias()</span>
+            <span class="func-pill" onclick="applyFunc('color')">color()</span>
+            <span class="func-pill" onclick="applyFunc('threshold')">threshold()</span>
+          </div>
+        </div>
+
+        <!-- Result panel -->
+        <div class="chart-card" style="min-height:340px;">
+          <div class="chart-header">
+            <div class="chart-title-group">
+              <h3 id="resultTitle">servers.*.cpu.usage</h3>
+              <span class="chart-subtitle" id="resultSubtitle">Click Run to execute query</span>
+            </div>
+            <div class="chart-actions">
+              <select class="gx-select" id="chartTypeSelect" onchange="changeChartType()">
+                <option value="line">Line</option>
+                <option value="bar">Bar</option>
+                <option value="area">Area</option>
+              </select>
+              <button class="btn-icon-sm" onclick="exportCSV()" title="Export CSV">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              </button>
+            </div>
+          </div>
+          <div class="chart-body" style="min-height:260px;">
+            <canvas id="exploreChart"></canvas>
+          </div>
+        </div>
+
+        <!-- Stats row below chart -->
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:16px" id="metaStats">
+          <div class="stat-card" style="min-height:unset;padding:14px">
+            <div class="stat-label">Current</div>
+            <div class="stat-value" style="font-size:20px" id="metaCurrent">—</div>
+          </div>
+          <div class="stat-card" style="min-height:unset;padding:14px">
+            <div class="stat-label">Average</div>
+            <div class="stat-value" style="font-size:20px" id="metaAvg">—</div>
+          </div>
+          <div class="stat-card" style="min-height:unset;padding:14px">
+            <div class="stat-label">Max</div>
+            <div class="stat-value" style="font-size:20px" id="metaMax">—</div>
+          </div>
+          <div class="stat-card" style="min-height:unset;padding:14px">
+            <div class="stat-label">Min</div>
+            <div class="stat-value" style="font-size:20px" id="metaMin">—</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <div class="toast-container" id="toastC"></div>
+
+  <script src="js/metrics.js"></script>
+  <script src="js/charts.js"></script>
+  <script>
+    let exploreChart = null;
+    let currentSeries = [];
+    let currentType = 'line';
+
+    MetricsEngine.init();
+    buildTree();
+
+    function buildTree() {
+      const root = document.getElementById('treeRoot');
+      const tree = MetricsEngine.getTree();
+      root.innerHTML = renderNode(tree, '');
+    }
+
+    function renderNode(node, path) {
+      if (Array.isArray(node)) {
+        return node.map(leaf => {
+          const full = path ? `${path}.${leaf}` : leaf;
+          return `<div class="tree-node">
+            <div class="tree-node-label" onclick="selectMetric('${full}')">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#00d4ff" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+              ${leaf}
+            </div>
+          </div>`;
+        }).join('');
+      }
+      return Object.entries(node).map(([k, v]) => {
+        const full = path ? `${path}.${k}` : k;
+        const hasChildren = typeof v === 'object' && !Array.isArray(v);
+        return `<div class="tree-node">
+          <div class="tree-node-label" onclick="toggleBranch(this)">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+            ${k}
+          </div>
+          <div class="tree-node-children" style="display:none">
+            ${renderNode(v, full)}
+          </div>
+        </div>`;
+      }).join('');
+    }
+
+    function toggleBranch(el) {
+      const children = el.nextElementSibling;
+      if (!children) return;
+      const open = children.style.display !== 'none';
+      children.style.display = open ? 'none' : 'block';
+      const arrow = el.querySelector('svg');
+      if (arrow) arrow.style.transform = open ? '' : 'rotate(90deg)';
+    }
+
+    function selectMetric(path) {
+      document.getElementById('queryInput').value = path;
+      document.querySelectorAll('.tree-node-label').forEach(n => n.classList.remove('active'));
+      event.currentTarget.classList.add('active');
+      runQuery();
+    }
+
+    function runQuery() {
+      const q = document.getElementById('queryInput').value.trim();
+      if (!q) return;
+      currentSeries = MetricsEngine.evalQuery(q);
+      document.getElementById('resultTitle').textContent = q;
+      document.getElementById('resultSubtitle').textContent = `${currentSeries.length} data points`;
+      renderExploreChart();
+      updateMetaStats();
+    }
+
+    function renderExploreChart() {
+      if (exploreChart) { exploreChart.destroy(); exploreChart = null; }
+      const type = document.getElementById('chartTypeSelect').value;
+      if (type === 'bar') {
+        exploreChart = GXCharts.bar('exploreChart', currentSeries, GXCharts.COLORS.cyan, { label: 'Value' });
+      } else {
+        exploreChart = GXCharts.timeseries('exploreChart', [
+          { label: 'Value', series: currentSeries, color: 'cyan', fill: type === 'area' }
+        ]);
+      }
+    }
+
+    function changeChartType() { if (currentSeries.length) renderExploreChart(); }
+
+    function updateMetaStats() {
+      if (!currentSeries.length) return;
+      const vals = currentSeries.map(p => p.v);
+      const cur = vals[vals.length - 1];
+      const avg = vals.reduce((a, b) => a + b, 0) / vals.length;
+      const max = Math.max(...vals);
+      const min = Math.min(...vals);
+      document.getElementById('metaCurrent').textContent = cur.toFixed(2);
+      document.getElementById('metaAvg').textContent = avg.toFixed(2);
+      document.getElementById('metaMax').textContent = max.toFixed(2);
+      document.getElementById('metaMin').textContent = min.toFixed(2);
+    }
+
+    function applyFunc(fn) {
+      const q = document.getElementById('queryInput');
+      q.value = `${fn}(${q.value})`;
+    }
+
+    function setRange(btn, r) {
+      document.querySelectorAll('.time-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    }
+
+    function exportCSV() {
+      if (!currentSeries.length) return;
+      const rows = [['timestamp','value'], ...currentSeries.map(p => [new Date(p.t).toISOString(), p.v])];
+      const csv = rows.map(r => r.join(',')).join('\n');
+      const a = document.createElement('a');
+      a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+      a.download = 'graphite-x-export.csv';
+      a.click();
+    }
+
+    document.getElementById('treeSearch').addEventListener('input', e => {
+      const q = e.target.value.toLowerCase();
+      document.querySelectorAll('.tree-node-label').forEach(el => {
+        const match = el.textContent.toLowerCase().includes(q);
+        el.closest('.tree-node').style.display = match || !q ? '' : 'none';
+      });
+    });
+
+    runQuery();
+  </script>
+</body>
+</html>

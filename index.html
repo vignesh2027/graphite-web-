@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GRAPHITE-X — Metrics Intelligence Platform</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📊</text></svg>" />
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3.0.1/dist/chartjs-plugin-annotation.min.js"></script>
+</head>
+<body>
+  <!-- Animated background -->
+  <div class="bg-grid"></div>
+  <div class="bg-orbs">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+  </div>
+
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-icon">
+        <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+          <path d="M4 20 L10 12 L16 16 L22 6" stroke="#00d4ff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+          <circle cx="22" cy="6" r="2.5" fill="#00d4ff"/>
+          <path d="M2 24 H26" stroke="rgba(255,255,255,0.2)" stroke-width="1.5"/>
+        </svg>
+      </div>
+      <span class="logo-text">GRAPHITE<span class="logo-accent">-X</span></span>
+    </div>
+
+    <div class="sidebar-search">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+      </svg>
+      <input type="text" placeholder="Search metrics..." id="sidebarSearch" />
+    </div>
+
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">OVERVIEW</div>
+      <a href="index.html" class="nav-item active">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+        Dashboard
+      </a>
+      <a href="explore.html" class="nav-item">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        Explore
+      </a>
+      <a href="topology.html" class="nav-item">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="5" r="2"/><circle cx="5" cy="19" r="2"/><circle cx="19" cy="19" r="2"/><path d="M12 7v4M8.5 17.5 12 11M15.5 17.5 12 11"/></svg>
+        Topology
+      </a>
+      <a href="alerts.html" class="nav-item">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        Alerts
+        <span class="badge-alert">3</span>
+      </a>
+
+      <div class="nav-section-label">DASHBOARDS</div>
+      <a href="#" class="nav-item" onclick="loadDashboard('infrastructure'); return false;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+        Infrastructure
+      </a>
+      <a href="#" class="nav-item" onclick="loadDashboard('application'); return false;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+        Application
+      </a>
+      <a href="#" class="nav-item" onclick="loadDashboard('business'); return false;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+        Business KPIs
+      </a>
+      <a href="#" class="nav-item" onclick="loadDashboard('network'); return false;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="2" width="6" height="6"/><rect x="9" y="16" width="6" height="6"/><rect x="2" y="9" width="6" height="6"/><rect x="16" y="9" width="6" height="6"/><path d="M9 5H8C5.2 5 3 7.2 3 10v0a2 2 0 0 0 2 2h2M15 5h1c2.8 0 5 2.2 5 5v0a2 2 0 0 1-2 2h-2M9 19H8a2 2 0 0 1-2-2v0"/></svg>
+        Network
+      </a>
+
+      <div class="nav-section-label">DATA SOURCES</div>
+      <a href="#" class="nav-item">
+        <span class="source-dot green"></span>
+        prod-graphite-01
+      </a>
+      <a href="#" class="nav-item">
+        <span class="source-dot green"></span>
+        prod-graphite-02
+      </a>
+      <a href="#" class="nav-item">
+        <span class="source-dot yellow"></span>
+        staging-graphite
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <div class="user-avatar">V</div>
+        <div class="user-info">
+          <span class="user-name">Vignesh</span>
+          <span class="user-role">Admin</span>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main content -->
+  <main class="main">
+    <!-- Top bar -->
+    <header class="topbar">
+      <div class="topbar-left">
+        <button class="btn-icon" onclick="toggleSidebar()" title="Toggle sidebar">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
+        <h1 class="page-title">Dashboard</h1>
+        <div class="breadcrumb">
+          <span>Home</span>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+          <span class="active">Overview</span>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <div class="time-range-picker">
+          <button class="time-btn" onclick="setRange('15m')">15m</button>
+          <button class="time-btn" onclick="setRange('1h')">1h</button>
+          <button class="time-btn active" onclick="setRange('6h')">6h</button>
+          <button class="time-btn" onclick="setRange('24h')">24h</button>
+          <button class="time-btn" onclick="setRange('7d')">7d</button>
+          <button class="time-btn" onclick="setRange('30d')">30d</button>
+        </div>
+        <div class="live-indicator">
+          <span class="live-dot"></span>
+          LIVE
+        </div>
+        <button class="btn-icon" title="Refresh" onclick="refreshAll()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+        </button>
+        <button class="btn-icon" title="Add panel" onclick="openAddPanel()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        </button>
+        <button class="btn-primary" onclick="saveDashboard()">Save</button>
+      </div>
+    </header>
+
+    <!-- Stat cards row -->
+    <section class="stats-row">
+      <div class="stat-card" data-metric="cpu">
+        <div class="stat-header">
+          <div class="stat-icon" style="background: rgba(0,212,255,0.15); color:#00d4ff;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><line x1="9" y1="1" x2="9" y2="4"/><line x1="15" y1="1" x2="15" y2="4"/><line x1="9" y1="20" x2="9" y2="23"/><line x1="15" y1="20" x2="15" y2="23"/><line x1="20" y1="9" x2="23" y2="9"/><line x1="20" y1="14" x2="23" y2="14"/><line x1="1" y1="9" x2="4" y2="9"/><line x1="1" y1="14" x2="4" y2="14"/></svg>
+          </div>
+          <div class="stat-trend up" id="cpuTrend">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="18 15 12 9 6 15"/></svg>
+            <span>2.4%</span>
+          </div>
+        </div>
+        <div class="stat-value" id="cpuVal">72.4<span class="stat-unit">%</span></div>
+        <div class="stat-label">CPU Utilization</div>
+        <div class="stat-sparkline">
+          <canvas id="sparkCpu" height="40"></canvas>
+        </div>
+      </div>
+
+      <div class="stat-card" data-metric="memory">
+        <div class="stat-header">
+          <div class="stat-icon" style="background: rgba(124,58,237,0.15); color:#7c3aed;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/><path d="M8 10h0M12 10h0M16 10h0M8 14h0M12 14h0M16 14h0"/></svg>
+          </div>
+          <div class="stat-trend down" id="memTrend">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+            <span>1.1%</span>
+          </div>
+        </div>
+        <div class="stat-value" id="memVal">14.2<span class="stat-unit">GB</span></div>
+        <div class="stat-label">Memory Used</div>
+        <div class="stat-sparkline">
+          <canvas id="sparkMem" height="40"></canvas>
+        </div>
+      </div>
+
+      <div class="stat-card" data-metric="requests">
+        <div class="stat-header">
+          <div class="stat-icon" style="background: rgba(16,185,129,0.15); color:#10b981;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+          </div>
+          <div class="stat-trend up" id="reqTrend">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="18 15 12 9 6 15"/></svg>
+            <span>18.3%</span>
+          </div>
+        </div>
+        <div class="stat-value" id="reqVal">48.7<span class="stat-unit">K/s</span></div>
+        <div class="stat-label">Requests / sec</div>
+        <div class="stat-sparkline">
+          <canvas id="sparkReq" height="40"></canvas>
+        </div>
+      </div>
+
+      <div class="stat-card" data-metric="latency">
+        <div class="stat-header">
+          <div class="stat-icon" style="background: rgba(245,158,11,0.15); color:#f59e0b;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          </div>
+          <div class="stat-trend down" id="latTrend">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+            <span>5.7%</span>
+          </div>
+        </div>
+        <div class="stat-value" id="latVal">24<span class="stat-unit">ms</span></div>
+        <div class="stat-label">Avg Latency</div>
+        <div class="stat-sparkline">
+          <canvas id="sparkLat" height="40"></canvas>
+        </div>
+      </div>
+
+      <div class="stat-card" data-metric="errors">
+        <div class="stat-header">
+          <div class="stat-icon" style="background: rgba(239,68,68,0.15); color:#ef4444;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          </div>
+          <div class="stat-trend up-bad" id="errTrend">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="18 15 12 9 6 15"/></svg>
+            <span>0.8%</span>
+          </div>
+        </div>
+        <div class="stat-value" id="errVal">0.24<span class="stat-unit">%</span></div>
+        <div class="stat-label">Error Rate</div>
+        <div class="stat-sparkline">
+          <canvas id="sparkErr" height="40"></canvas>
+        </div>
+      </div>
+    </section>
+
+    <!-- Main charts grid -->
+    <section class="charts-grid">
+      <!-- Primary time series -->
+      <div class="chart-card span-2" id="panelMain">
+        <div class="chart-header">
+          <div class="chart-title-group">
+            <h3>System Metrics Overview</h3>
+            <span class="chart-subtitle">CPU · Memory · Network — last 6 hours</span>
+          </div>
+          <div class="chart-actions">
+            <div class="chart-legend" id="mainLegend"></div>
+            <button class="btn-icon-sm" onclick="togglePanel('panelMain')" title="Fullscreen">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
+            </button>
+            <button class="btn-icon-sm" title="Options">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
+            </button>
+          </div>
+        </div>
+        <div class="chart-body">
+          <canvas id="chartMain"></canvas>
+        </div>
+      </div>
+
+      <!-- Request rate -->
+      <div class="chart-card" id="panelReq">
+        <div class="chart-header">
+          <div class="chart-title-group">
+            <h3>Request Rate</h3>
+            <span class="chart-subtitle">Requests per second</span>
+          </div>
+          <div class="chart-actions">
+            <button class="btn-icon-sm" onclick="togglePanel('panelReq')">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
+            </button>
+          </div>
+        </div>
+        <div class="chart-body">
+          <canvas id="chartReq"></canvas>
+        </div>
+      </div>
+
+      <!-- Gauge: Disk -->
+      <div class="chart-card" id="panelDisk">
+        <div class="chart-header">
+          <div class="chart-title-group">
+            <h3>Disk Usage</h3>
+            <span class="chart-subtitle">Total across cluster</span>
+          </div>
+        </div>
+        <div class="chart-body chart-center">
+          <canvas id="chartDisk"></canvas>
+          <div class="gauge-label">
+            <span id="diskPct">68%</span>
+            <small>Used</small>
+          </div>
+        </div>
+      </div>
+
+      <!-- Error rate -->
+      <div class="chart-card" id="panelErr">
+        <div class="chart-header">
+          <div class="chart-title-group">
+            <h3>Error Rate</h3>
+            <span class="chart-subtitle">5xx errors over time</span>
+          </div>
+          <div class="anomaly-badge">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            1 anomaly
+          </div>
+        </div>
+        <div class="chart-body">
+          <canvas id="chartErr"></canvas>
+        </div>
+      </div>
+
+      <!-- Heatmap -->
+      <div class="chart-card span-2" id="panelHeat">
+        <div class="chart-header">
+          <div class="chart-title-group">
+            <h3>Latency Distribution Heatmap</h3>
+            <span class="chart-subtitle">Response time buckets over 24 hours</span>
+          </div>
+          <div class="chart-actions">
+            <button class="btn-icon-sm" onclick="togglePanel('panelHeat')">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
+            </button>
+          </div>
+        </div>
+        <div class="chart-body">
+          <canvas id="chartHeat"></canvas>
+        </div>
+      </div>
+
+      <!-- Network I/O -->
+      <div class="chart-card" id="panelNet">
+        <div class="chart-header">
+          <div class="chart-title-group">
+            <h3>Network I/O</h3>
+            <span class="chart-subtitle">Inbound / Outbound (MB/s)</span>
+          </div>
+        </div>
+        <div class="chart-body">
+          <canvas id="chartNet"></canvas>
+        </div>
+      </div>
+
+      <!-- Top metrics table -->
+      <div class="chart-card" id="panelTop">
+        <div class="chart-header">
+          <div class="chart-title-group">
+            <h3>Top Hosts by CPU</h3>
+            <span class="chart-subtitle">Real-time ranking</span>
+          </div>
+        </div>
+        <div class="chart-body">
+          <table class="metrics-table" id="hostTable">
+            <thead>
+              <tr><th>Host</th><th>CPU</th><th>MEM</th><th>Status</th></tr>
+            </thead>
+            <tbody id="hostTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Alert sidebar -->
+  <div class="alert-drawer" id="alertDrawer">
+    <div class="alert-drawer-header">
+      <h3>Active Alerts</h3>
+      <button onclick="closeAlertDrawer()" class="btn-icon">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="alert-list" id="alertList"></div>
+  </div>
+
+  <!-- Add panel modal -->
+  <div class="modal-overlay" id="addPanelModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>Add Panel</h3>
+        <button onclick="closeAddPanel()" class="btn-icon">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="panel-type-grid">
+          <div class="panel-type" onclick="addPanel('line')">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+            <span>Line</span>
+          </div>
+          <div class="panel-type" onclick="addPanel('bar')">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/><line x1="2" y1="20" x2="22" y2="20"/></svg>
+            <span>Bar</span>
+          </div>
+          <div class="panel-type" onclick="addPanel('area')">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 20 L7 12 L11 15 L15 8 L21 20 Z" fill="rgba(0,212,255,0.3)"/><polyline points="3 20 7 12 11 15 15 8 21 4" stroke="#00d4ff"/></svg>
+            <span>Area</span>
+          </div>
+          <div class="panel-type" onclick="addPanel('gauge')">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 22a10 10 0 1 1 0-20 10 10 0 0 1 0 20z"/><path d="M12 6v6l4 2"/></svg>
+            <span>Gauge</span>
+          </div>
+          <div class="panel-type" onclick="addPanel('stat')">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 12h6M9 8h6M9 16h4"/></svg>
+            <span>Stat</span>
+          </div>
+          <div class="panel-type" onclick="addPanel('heatmap')">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="4" height="4" rx="0.5" fill="rgba(0,212,255,0.8)"/><rect x="10" y="3" width="4" height="4" rx="0.5" fill="rgba(0,212,255,0.4)"/><rect x="17" y="3" width="4" height="4" rx="0.5" fill="rgba(0,212,255,0.9)"/><rect x="3" y="10" width="4" height="4" rx="0.5" fill="rgba(0,212,255,0.3)"/><rect x="10" y="10" width="4" height="4" rx="0.5" fill="rgba(0,212,255,1)"/><rect x="17" y="10" width="4" height="4" rx="0.5" fill="rgba(0,212,255,0.5)"/><rect x="3" y="17" width="4" height="4" rx="0.5" fill="rgba(0,212,255,0.7)"/><rect x="10" y="17" width="4" height="4" rx="0.5" fill="rgba(0,212,255,0.2)"/><rect x="17" y="17" width="4" height="4" rx="0.5" fill="rgba(0,212,255,0.6)"/></svg>
+            <span>Heatmap</span>
+          </div>
+        </div>
+        <div class="modal-query">
+          <label>Metric Query</label>
+          <input type="text" class="query-input" placeholder='e.g. servers.*.cpu.usage' id="panelQuery"/>
+          <label>Panel Title</label>
+          <input type="text" class="query-input" placeholder="Panel Title" id="panelTitle"/>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-outline" onclick="closeAddPanel()">Cancel</button>
+        <button class="btn-primary" onclick="confirmAddPanel()">Add Panel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tooltip -->
+  <div class="metric-tooltip" id="tooltip"></div>
+
+  <script src="js/metrics.js"></script>
+  <script src="js/charts.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

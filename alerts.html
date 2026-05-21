@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Alerts — GRAPHITE-X</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📊</text></svg>" />
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+  <div class="bg-grid"></div>
+  <div class="bg-orbs">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-icon">
+        <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+          <path d="M4 20 L10 12 L16 16 L22 6" stroke="#00d4ff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+          <circle cx="22" cy="6" r="2.5" fill="#00d4ff"/>
+        </svg>
+      </div>
+      <span class="logo-text">GRAPHITE<span class="logo-accent">-X</span></span>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">OVERVIEW</div>
+      <a href="index.html" class="nav-item"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>Dashboard</a>
+      <a href="explore.html" class="nav-item"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>Explore</a>
+      <a href="topology.html" class="nav-item"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="5" r="2"/><circle cx="5" cy="19" r="2"/><circle cx="19" cy="19" r="2"/><path d="M12 7v4M8.5 17.5 12 11M15.5 17.5 12 11"/></svg>Topology</a>
+      <a href="alerts.html" class="nav-item active"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>Alerts<span class="badge-alert">3</span></a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <div class="user-avatar">V</div>
+        <div class="user-info"><span class="user-name">Vignesh</span><span class="user-role">Admin</span></div>
+      </div>
+    </div>
+  </aside>
+
+  <main class="main">
+    <header class="topbar">
+      <div class="topbar-left">
+        <h1 class="page-title">Alerts</h1>
+        <div class="breadcrumb">
+          <span>Home</span>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+          <span class="active">Alert Management</span>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <button class="btn-primary" onclick="openNewAlert()">+ New Alert</button>
+      </div>
+    </header>
+
+    <div class="alerts-layout">
+      <!-- Summary bar -->
+      <div class="stats-row" style="padding:0 0 20px;">
+        <div class="stat-card" style="border-left:3px solid var(--accent-red)">
+          <div class="stat-value" style="color:var(--accent-red)">3</div>
+          <div class="stat-label">Firing</div>
+        </div>
+        <div class="stat-card" style="border-left:3px solid var(--accent-amber)">
+          <div class="stat-value" style="color:var(--accent-amber)">7</div>
+          <div class="stat-label">Pending</div>
+        </div>
+        <div class="stat-card" style="border-left:3px solid var(--accent-green)">
+          <div class="stat-value" style="color:var(--accent-green)">24</div>
+          <div class="stat-label">OK</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value">34</div>
+          <div class="stat-label">Total Rules</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" style="color:var(--accent-green)">99.7<span class="stat-unit">%</span></div>
+          <div class="stat-label">Uptime</div>
+        </div>
+      </div>
+
+      <!-- Filters -->
+      <div class="alerts-toolbar">
+        <div style="display:flex;gap:6px;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:8px;padding:3px">
+          <button class="time-btn active" onclick="filterAlerts('all',this)">All (34)</button>
+          <button class="time-btn" onclick="filterAlerts('firing',this)" style="color:var(--accent-red)">Firing (3)</button>
+          <button class="time-btn" onclick="filterAlerts('pending',this)" style="color:var(--accent-amber)">Pending (7)</button>
+          <button class="time-btn" onclick="filterAlerts('ok',this)" style="color:var(--accent-green)">OK (24)</button>
+        </div>
+        <input type="text" class="qb-input" placeholder="Filter by name or metric…" style="flex:1;max-width:320px" id="alertFilter" oninput="filterByText(this.value)"/>
+        <select class="gx-select" id="groupBy">
+          <option>Group by: Severity</option>
+          <option>Group by: Host</option>
+          <option>Group by: Team</option>
+        </select>
+      </div>
+
+      <!-- Alert rules list -->
+      <div class="alerts-grid" id="alertsGrid"></div>
+    </div>
+  </main>
+
+  <!-- New alert modal -->
+  <div class="modal-overlay" id="newAlertModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>Create Alert Rule</h3>
+        <button onclick="closeNewAlert()" class="btn-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+      </div>
+      <div class="modal-body">
+        <div class="modal-query">
+          <label>Rule Name</label>
+          <input class="query-input" placeholder="e.g. High CPU Alert" id="newName"/>
+          <label>Metric Query</label>
+          <input class="query-input" placeholder="servers.*.cpu.usage" id="newMetric" style="font-family:var(--font-mono)"/>
+          <label>Condition</label>
+          <div style="display:flex;gap:8px">
+            <select class="gx-select" id="newCond">
+              <option value="above">is above</option>
+              <option value="below">is below</option>
+              <option value="eq">equals</option>
+              <option value="nodata">has no data</option>
+            </select>
+            <input class="query-input" placeholder="90" id="newThresh" style="width:100px"/>
+            <select class="gx-select" id="newUnit"><option>%</option><option>ms</option><option>MB/s</option><option>req/s</option></select>
+          </div>
+          <label>For (duration)</label>
+          <select class="gx-select" id="newDur">
+            <option>1 minute</option>
+            <option>5 minutes</option>
+            <option selected>10 minutes</option>
+            <option>30 minutes</option>
+          </select>
+          <label>Severity</label>
+          <div style="display:flex;gap:8px">
+            <button class="btn-outline" id="sevCrit" onclick="setSev('critical')" style="border-color:var(--accent-red);color:var(--accent-red)">Critical</button>
+            <button class="btn-outline" id="sevWarn" onclick="setSev('warning')">Warning</button>
+            <button class="btn-outline" id="sevInfo" onclick="setSev('info')">Info</button>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-outline" onclick="closeNewAlert()">Cancel</button>
+        <button class="btn-primary" onclick="saveAlert()">Create Alert</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast-container" id="toastC"></div>
+
+  <script src="js/metrics.js"></script>
+  <script>
+    const ALERT_RULES = [
+      { id:1, name:'CPU Spike', metric:'servers.*.cpu.usage', cond:'above 90%', sev:'critical', state:'firing', fired:'8m ago', host:'api-01.prod', desc:'CPU utilization exceeded 90% for more than 5 minutes.' },
+      { id:2, name:'Memory Critical', metric:'servers.*.memory.used', cond:'above 90%', sev:'critical', state:'firing', fired:'23m ago', host:'db-01.prod', desc:'Memory usage above 90% threshold.' },
+      { id:3, name:'High Error Rate', metric:'app.requests.errors', cond:'above 0.5%', sev:'warning', state:'firing', fired:'45m ago', host:'all', desc:'Application error rate elevated.' },
+      { id:4, name:'Disk Usage Warn', metric:'servers.*.disk.used_pct', cond:'above 80%', sev:'warning', state:'pending', fired:'—', host:'web-01.prod', desc:'Disk usage approaching limit.' },
+      { id:5, name:'API Latency', metric:'app.requests.duration_p99', cond:'above 500ms', sev:'warning', state:'pending', fired:'—', host:'all', desc:'P99 latency exceeds SLA threshold.' },
+      { id:6, name:'Queue Depth', metric:'app.queue.depth', cond:'above 1000', sev:'warning', state:'pending', fired:'—', host:'queue-01', desc:'Message queue depth is unusually high.' },
+      { id:7, name:'Cache Miss Rate', metric:'app.cache.miss_rate', cond:'above 30%', sev:'warning', state:'pending', fired:'—', host:'cache-01', desc:'Cache hit rate below target.' },
+      { id:8, name:'Low Disk Space', metric:'servers.*.disk.available_gb', cond:'below 10GB', sev:'warning', state:'pending', fired:'—', host:'db-02.prod', desc:'Available disk space critically low.' },
+      { id:9, name:'CPU Normal', metric:'servers.web.01.cpu', cond:'above 90%', sev:'warning', state:'ok', fired:'—', host:'web-01.prod', desc:'CPU within normal range.' },
+      { id:10, name:'Memory OK', metric:'servers.api.01.memory', cond:'above 85%', sev:'warning', state:'ok', fired:'—', host:'api-02.prod', desc:'Memory usage normal.' },
+      { id:11, name:'Network Saturation', metric:'servers.*.net.rx_bytes', cond:'above 900MB/s', sev:'critical', state:'ok', fired:'—', host:'all', desc:'Network bandwidth within limits.' },
+      { id:12, name:'DB Connections', metric:'servers.db.01.connections', cond:'above 500', sev:'warning', state:'ok', fired:'—', host:'db-01.prod', desc:'DB connection pool normal.' },
+    ];
+
+    let currentFilter = 'all';
+    let selectedSev = 'critical';
+
+    function renderAlerts(data) {
+      const grid = document.getElementById('alertsGrid');
+      grid.innerHTML = data.map(a => {
+        const stateColor = a.state === 'firing' ? 'var(--accent-red)' : a.state === 'pending' ? 'var(--accent-amber)' : 'var(--accent-green)';
+        const sevDot = a.sev === 'critical' ? 'critical' : a.sev === 'warning' ? 'warning' : 'ok';
+        return `<div class="alert-rule-card fade-in" data-state="${a.state}" data-name="${a.name.toLowerCase()}">
+          <div class="alert-severity ${sevDot}"></div>
+          <div>
+            <div class="alert-rule-name">${a.name}</div>
+            <div class="alert-rule-desc">${a.desc}</div>
+            <div class="alert-rule-metric">${a.metric}</div>
+            <div style="font-size:11px;color:var(--text-muted);margin-top:4px">Condition: <span style="color:var(--text-secondary)">${a.cond}</span> · Host: <span style="color:var(--text-secondary)">${a.host}</span></div>
+          </div>
+          <div style="text-align:right">
+            <span class="status-chip ${a.state === 'firing' ? 'crit' : a.state === 'pending' ? 'warn' : 'ok'}">${a.state.toUpperCase()}</span>
+            ${a.fired !== '—' ? `<div style="font-size:11px;color:var(--text-muted);margin-top:4px">Fired ${a.fired}</div>` : ''}
+          </div>
+          <div style="display:flex;gap:6px">
+            <button class="btn-icon-sm" title="Silence" onclick="silenceAlert(${a.id})">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="1" y1="1" x2="23" y2="23"/><path d="M9 9v3a3 3 0 0 0 5.12 2.12M15 9.34V4a3 3 0 0 0-5.94-.6"/><path d="M17 16.95A7 7 0 0 1 5 12v-2m14 0v2a7 7 0 0 1-.11 1.23"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+            </button>
+            <button class="btn-icon-sm" title="Edit" onclick="editAlert(${a.id})">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            </button>
+          </div>
+        </div>`;
+      }).join('');
+    }
+
+    function filterAlerts(state, btn) {
+      currentFilter = state;
+      document.querySelectorAll('.alerts-toolbar .time-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      applyFilters();
+    }
+
+    function filterByText(q) { applyFilters(); }
+
+    function applyFilters() {
+      const q = document.getElementById('alertFilter').value.toLowerCase();
+      let data = ALERT_RULES;
+      if (currentFilter !== 'all') data = data.filter(a => a.state === currentFilter);
+      if (q) data = data.filter(a => a.name.toLowerCase().includes(q) || a.metric.toLowerCase().includes(q));
+      renderAlerts(data);
+    }
+
+    function openNewAlert() { document.getElementById('newAlertModal').classList.add('open'); }
+    function closeNewAlert() { document.getElementById('newAlertModal').classList.remove('open'); }
+    function setSev(s) {
+      selectedSev = s;
+      ['Crit','Warn','Info'].forEach(x => document.getElementById('sev'+x).style.fontWeight = '');
+      const map = {critical:'Crit',warning:'Warn',info:'Info'};
+      document.getElementById('sev'+map[s]).style.fontWeight = '700';
+    }
+    function saveAlert() {
+      const name = document.getElementById('newName').value || 'New Alert';
+      ALERT_RULES.unshift({ id: Date.now(), name, metric: document.getElementById('newMetric').value || 'servers.*.cpu.usage', cond: `above ${document.getElementById('newThresh').value||'90'}${document.getElementById('newUnit').value}`, sev: selectedSev, state: 'pending', fired:'—', host:'all', desc:'User-defined alert rule.' });
+      closeNewAlert();
+      applyFilters();
+      showToast(`Alert "${name}" created`, 'success');
+    }
+    function silenceAlert(id) { showToast('Alert silenced for 1 hour', 'info'); }
+    function editAlert(id)    { showToast('Edit coming soon', 'info'); }
+
+    function showToast(msg, type = 'info') {
+      const c = document.getElementById('toastC');
+      const t = document.createElement('div');
+      t.className = `toast toast-${type}`;
+      t.innerHTML = `<span style="font-weight:700">${type==='success'?'✓':type==='error'?'✕':'ℹ'}</span> ${msg}`;
+      c.appendChild(t);
+      setTimeout(() => { t.style.opacity='0'; t.style.transition='.3s'; setTimeout(()=>t.remove(),300); }, 3000);
+    }
+
+    document.addEventListener('keydown', e => { if (e.key==='Escape') closeNewAlert(); });
+    renderAlerts(ALERT_RULES);
+  </script>
+</body>
+</html>
