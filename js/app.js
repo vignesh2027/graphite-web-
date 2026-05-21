@@ -50,7 +50,7 @@ document.addEventListener('DOMContentLoaded', () => {
 /* ── Sparklines ──────────────────────────────────────────── */
 function initSparklines() {
   const C = GXCharts.COLORS;
-  charts.sparkCpu = GXCharts.sparkline('sparkCpu', MetricsEngine.getSeries('cpu', 30), C.cyan);
+  charts.sparkCpu = GXCharts.sparkline('sparkCpu', MetricsEngine.getSeries('cpu', 30), C.blue || '#2563eb');
   charts.sparkMem = GXCharts.sparkline('sparkMem', MetricsEngine.getSeries('memory', 30), C.purple);
   charts.sparkReq = GXCharts.sparkline('sparkReq', MetricsEngine.getSeries('requests', 30), C.green);
   charts.sparkLat = GXCharts.sparkline('sparkLat', MetricsEngine.getSeries('latency', 30), C.amber);
@@ -60,7 +60,7 @@ function initSparklines() {
 /* ── Main multi-line chart ───────────────────────────────── */
 function initMainChart() {
   charts.main = GXCharts.timeseries('chartMain', [
-    { label: 'CPU %',    series: MetricsEngine.getSeries('cpu', 60),     color: 'cyan',   fill: true },
+    { label: 'CPU %',    series: MetricsEngine.getSeries('cpu', 60),     color: 'blue',   fill: true },
     { label: 'Mem GB',   series: MetricsEngine.getSeries('memory', 60),  color: 'purple', fill: false },
     { label: 'Net MB/s', series: MetricsEngine.getSeries('netIn', 60),   color: 'green',  fill: false },
   ]);

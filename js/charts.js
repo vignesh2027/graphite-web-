@@ -8,18 +8,19 @@
 const GXCharts = (() => {
 
   /* ── Global Chart.js defaults ────────────────────────────── */
-  Chart.defaults.color = 'rgba(255,255,255,0.45)';
-  Chart.defaults.borderColor = 'rgba(255,255,255,0.06)';
+  Chart.defaults.color = '#94a3b8';
+  Chart.defaults.borderColor = '#e2e8f0';
   Chart.defaults.font.family = "'SF Pro Display', -apple-system, 'Segoe UI', system-ui, sans-serif";
   Chart.defaults.font.size = 11;
 
   const COLORS = {
-    cyan:   '#00d4ff',
-    purple: '#7c3aed',
+    cyan:   '#0ea5e9',
+    purple: '#6366f1',
     green:  '#10b981',
     amber:  '#f59e0b',
     red:    '#ef4444',
     pink:   '#ec4899',
+    blue:   '#2563eb',
   };
 
   const gradient = (ctx, color, alpha_top = 0.25, alpha_bot = 0) => {
@@ -45,8 +46,10 @@ const GXCharts = (() => {
   });
 
   const tooltipStyle = {
-    backgroundColor: 'rgba(13,14,26,0.97)',
-    borderColor: 'rgba(255,255,255,0.1)',
+    backgroundColor: '#ffffff',
+    borderColor: '#e2e8f0',
+    titleColor: '#0f172a',
+    bodyColor: '#475569',
     borderWidth: 1,
     padding: 10,
     cornerRadius: 8,
@@ -59,8 +62,8 @@ const GXCharts = (() => {
   };
 
   const scaleStyle = {
-    grid: { color: 'rgba(255,255,255,0.04)', drawBorder: false },
-    ticks: { maxTicksLimit: 6, color: 'rgba(255,255,255,0.35)', padding: 8 },
+    grid: { color: '#f1f5f9', drawBorder: false },
+    ticks: { maxTicksLimit: 6, color: '#94a3b8', padding: 8 },
     border: { display: false },
   };
 
@@ -266,10 +269,11 @@ const GXCharts = (() => {
       ctx.clearRect(0, 0, W, H);
 
       const getColor = (v) => {
-        const r = Math.round(v * 239 + (1 - v) * 0);
-        const g = Math.round(v * 68  + (1 - v) * 212);
-        const b = Math.round(v * 68  + (1 - v) * 255);
-        return `rgba(${r},${g},${b},${0.2 + v * 0.75})`;
+        /* blue → indigo → red for light theme */
+        const r = Math.round(v * 239 + (1 - v) * 37);
+        const g = Math.round(v * 68  + (1 - v) * 99);
+        const b = Math.round(v * 68  + (1 - v) * 235);
+        return `rgba(${r},${g},${b},${0.15 + v * 0.8})`;
       };
 
       data.forEach(({ x, y, v }) => {
